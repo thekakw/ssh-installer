@@ -606,7 +606,9 @@ $(cat /etc/openvpn/client.key)
 $(cat /etc/openvpn/tls-auth.key)
 </tls-auth>
 EOF16
-
+cp client.ovpn /home/vps/public_html/
+cp udp.ovpn /home/vps/public_html/
+cp ssl.ovpn /home/vps/public_html/
 # Setting UFW
 apt-get install ufw
 ufw allow ssh
