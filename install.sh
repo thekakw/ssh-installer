@@ -8,13 +8,6 @@ unzip master.zip
 cd lolcat-master/bin
 gem install lolcat
 clear
-# install webserver
-apt-get -y install nginx libexpat1-dev libxml-parser-perl
-
-# install essential package
-apt-get -y install nano iptables-persistent dnsutils screen whois ngrep unzip unrar
-
-# nginx
 apt-get -y install nginx
 apt-get -y install php7.0-fpm
 apt-get -y install php7.0-cli
@@ -45,13 +38,12 @@ apt-get install openvpn -y
  # Creating server.conf, ca.crt, server.crt and server.key
  cat <<'myOpenVPNconf1' > /etc/openvpn/servertcp.conf
 # GakodScript
-
 port 443
 proto tcp
 dev tun
 dev-type tun
-sndbuf 100000
-rcvbuf 100000
+sndbuf 0
+rcvbuf 0
 crl-verify crl.pem
 ca ca.crt
 cert server.crt
@@ -510,8 +502,8 @@ ping-restart 60
 hand-window 70
 server-poll-timeout 4
 reneg-sec 2592000
-sndbuf 100000
-rcvbuf 100000
+sndbuf 0
+rcvbuf 0
 remote-cert-tls server
 key-direction 1
 <auth-user-pass>
@@ -657,11 +649,11 @@ organization=HunterNblz
 organizationalunit=HunterNblz
 commonname=HunterNblz
 email=admin@nabil.my.id
-git clone https://github.com/hunternblz/ssh-installer
-cd /root/ssh-installer/files
-rm /etc/pam.d/common-password
-mv common-password /etc/pam.d/
+wget -O /etc/pam.d/common-password "https://raw.githubusercontent.com/macisvpn/premiumnow/master/common-password"
 chmod +x /etc/pam.d/common-password
+cd
+service exim4 stop
+sysv-rc-conf exim4 off
 cd
 cat > /etc/systemd/system/rc-local.service <<-END
 [Unit]
@@ -688,28 +680,8 @@ apt-get install -y wget curl
 apt -y autoremove
 apt -y autoclean
 apt -y clean
-ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
+ln -fs /usr/share/zoneinfo/Asia/Kuala_Lumpur /etc/localtime
 sed -i 's/AcceptEnv/#AcceptEnv/g' /etc/ssh/sshd_config
-apt-get update -y
-apt-get install -y nginx
-apt-get update -y
-apt-get -y install gcc
-apt-get -y install make
-apt-get -y install cmake
-apt-get -y install git
-apt-get -y install screen
-apt-get -y install unzip
-apt-get -y install curl
-apt-get -y install net-tools
-git clone https://github.com/dylanaraps/neofetch
-cd neofetch
-make install
-make PREFIX=/usr/local install
-make PREFIX=/boot/home/config/non-packaged install
-make -i install
-apt-get -y install neofetch
-cd
-rm -rf neofetch
 apt-get -y update
 wget https://github.com/ambrop72/badvpn/archive/1.999.130.tar.gz
 tar xvzf 1.999.130.tar.gz
@@ -827,26 +799,6 @@ echo '.....selesai'
 echo; echo 'Penginstallan selesai.'
 echo 'File config terletak pada /usr/local/ddos/ddos.conf'
 cd
-apt-get install -y libxml-parser-perl
-cd ssh-installer/files
-mv banner-ssh /etc/
-echo 'File banner ssh terletak pada /etc/banner-ssh'
-cd
-sed -i 's@#Banner@Banner@g' /etc/ssh/sshd_config
-sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/banner-ssh"@g' /etc/default/dropbear
-# text gambar
-apt-get install boxes
-
-# color text
-#cd
-#rm -rf /root/.bashrc
-#wget -O /root/.bashrc "https://raw.githubusercontent.com/padubang/gans/main/.bashrc"
-
-# install lolcat
-#sudo apt-get -y install ruby
-#sudo gem install lolcat
-
-# download script
 cd /usr/bin
 wget -O menu "https://raw.githubusercontent.com/acillsadank/install/master/menu.sh"
 wget -O edit "https://raw.githubusercontent.com/acillsadank/install/master/edit-ports.sh"
@@ -892,10 +844,6 @@ service openvpn restart
 /etc/init.d/sshd restart
 service dropbear restart
 /etc/init.d/fail2ban restart
-screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500
-screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500
-rm -rf /root/ssh-installer
-rm /root/install.sh
 port
 restart ~/.bash_history && history -c
 echo "unset HISTFILE" >> /etc/profile
