@@ -8,8 +8,16 @@ unzip master.zip
 cd lolcat-master/bin
 gem install lolcat
 clear
-rm -rf ssh-installer
-apt-get -y install nginx php-fpm php-cli
+# install webserver
+apt-get -y install nginx libexpat1-dev libxml-parser-perl
+
+# install essential package
+apt-get -y install nano iptables-persistent dnsutils screen whois ngrep unzip unrar
+
+# nginx
+apt-get -y install nginx
+apt-get -y install php7.0-fpm
+apt-get -y install php7.0-cli
 NIC=$(ip -4 route ls | grep default | grep -Po '(?<=dev )(\S+)' | head -1)
 export DEBIAN_FRONTEND=noninteractive
 OS=`uname -m`;
@@ -19,6 +27,15 @@ sed -i '$ i\echo 1 > /proc/sys/net/ipv6/conf/all/disable_ipv6' /etc/rc.local
 echo 1 > /proc/sys/net/ipv4/ip_forward
 sed -i 's/#net.ipv4.ip_forward=1/net.ipv4.ip_forward=1/g' /etc/sysctl.conf
 sysctl -p
+rm /etc/nginx/sites-enabled/default
+rm /etc/nginx/sites-available/default
+wget -O /etc/php/7.0/fpm/pool.d/www.conf "https://raw.githubusercontent.com/KeningauVPS/sslmode/master/www.conf"
+mkdir -p /home/vps/public_html
+echo "<?php phpinfo(); ?>" > /home/vps/public_html/info.php
+wget -O /home/vps/public_html/index.html https://raw.githubusercontent.com/GakodArmy/teli/main/index.html
+wget -O /etc/nginx/conf.d/vps.conf "https://raw.githubusercontent.com/ara-rangers/vps/master/vps.conf"
+sed -i 's/listen = \/var\/run\/php7.0-fpm.sock/listen = 127.0.0.1:9000/g' /etc/php/7.0/fpm/pool.d/www.conf
+service php7.0-fpm restart
 # Installing OpenVPN by pulling its repository inside sources.list file 
 #rm -rf /etc/apt/sources.list.d/openvpn*
 echo "deb http://build.openvpn.net/debian/openvpn/stable $(lsb_release -sc) main" >/etc/apt/sources.list.d/openvpn.list && apt-key del E158C569 && wget -O - https://swupdate.openvpn.net/repos/repo-public.gpg | apt-key add -
@@ -694,34 +711,13 @@ apt-get -y install neofetch
 cd
 rm -rf neofetch
 apt-get -y update
-cd
-rm /etc/nginx/sites-enabled/default
-cd ssh-installer/nginx/
-mv default /etc/nginx/sites-enabled/
-cd
-/etc/init.d/nginx restart
-systemctl restart nginx
-cd
-apt-get install cmake make gcc -y
-cd
-wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/badvpn/badvpn-1.999.128.tar.bz2
-tar xf badvpn-1.999.128.tar.bz2
+wget https://github.com/ambrop72/badvpn/archive/1.999.130.tar.gz
+tar xvzf 1.999.130.tar.gz
 mkdir badvpn-build
 cd badvpn-build
-cmake ~/badvpn-1.999.128 -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_UDPGW=1
+cmake ~/badvpn-1.999.130 -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_UDPGW=1
 make install
-cd
-sed -i '$ i\screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500' /etc/rc.local
-chmod +x /usr/bin/badvpn-udpgw
-screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 500
-cd
-rm -rf ssh-installer
-git clone https://github.com/hunternblz/ssh-installer
-cd ssh-installer/badvpn/
-mv badvpn-udpgw /usr/bin/
-sed -i '$ i\screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500' /etc/rc.local
-chmod +x /usr/bin/badvpn-udpgw
-screen -AmdS badvpn badvpn-udpgw --listen-addr 127.0.0.1:7200 --max-clients 500
+screen badvpn-udpgw --listen-addr 127.0.0.1:7300 > /dev/null &
 cd
 sed -i 's/#Port 22/Port 22/g' /etc/ssh/sshd_config
 sed -i '/Port 22/a Port 444' /etc/ssh/sshd_config
@@ -780,7 +776,7 @@ socket = l:TCP_NODELAY=1
 socket = r:TCP_NODELAY=1
 
 [dropbear]
-accept = 443
+accept = 445
 connect = 127.0.0.1:143
 
 [dropbear]
@@ -838,52 +834,57 @@ echo 'File banner ssh terletak pada /etc/banner-ssh'
 cd
 sed -i 's@#Banner@Banner@g' /etc/ssh/sshd_config
 sed -i 's@DROPBEAR_BANNER=""@DROPBEAR_BANNER="/etc/banner-ssh"@g' /etc/default/dropbear
-cd ssh-installer/menu
-mv menu.sh menu
-mv usernew.sh usernew
-mv trial.sh trial
-mv member.sh member
-mv delete.sh delete
-mv cek.sh cek
-mv restart.sh restart
-mv info.sh info
-mv live.sh live
-mv cekmemory.py cekmemory
-mv cekport.sh cekport
-mv port.sh port
-mv statport.sh statport
-cd
-echo "0 0 * * * root /sbin/reboot" > /etc/cron.d/reboot
-cd ssh-installer/menu
-cp -R menu /usr/bin
-cp -R usernew /usr/bin
-cp -R trial /usr/bin
-cp -R member /usr/bin
-cp -R delete /usr/bin
-cp -R cek /usr/bin
-cp -R restart /usr/bin
-cp -R speedtest /usr/bin
-cp -R info /usr/bin
-cp -R live /usr/bin
-cp -R cekmemory /usr/bin
-cp -R cekport /usr/bin
-cp -R port /usr/bin
-cp -R statport /usr/bin
-chmod +x /usr/bin/menu
-chmod +x /usr/bin/usernew
-chmod +x /usr/bin/trial
-chmod +x /usr/bin/member
-chmod +x /usr/bin/delete
-chmod +x /usr/bin/cek
-chmod +x /usr/bin/restart
-chmod +x /usr/bin/speedtest
-chmod +x /usr/bin/info
-chmod +x /usr/bin/live
-chmod +x /usr/bin/cekmemory
-chmod +x /usr/bin/cekport
-chmod +x /usr/bin/port
-chmod +x /usr/bin/statport
-cd
+# text gambar
+apt-get install boxes
+
+# color text
+#cd
+#rm -rf /root/.bashrc
+#wget -O /root/.bashrc "https://raw.githubusercontent.com/padubang/gans/main/.bashrc"
+
+# install lolcat
+#sudo apt-get -y install ruby
+#sudo gem install lolcat
+
+# download script
+cd /usr/bin
+wget -O menu "https://raw.githubusercontent.com/acillsadank/install/master/menu.sh"
+wget -O edit "https://raw.githubusercontent.com/acillsadank/install/master/edit-ports.sh"
+wget -O edit-dropbear "https://raw.githubusercontent.com/acillsadank/install/master/edit-dropbear.sh"
+wget -O edit-openssh "https://raw.githubusercontent.com/acillsadank/install/master/edit-openssh.sh"
+wget -O edit-openvpn "https://raw.githubusercontent.com/acillsadank/install/master/edit-openvpn.sh"
+wget -O edit-squid3 "https://raw.githubusercontent.com/acillsadank/install/master/edit-squid3.sh"
+wget -O edit-stunnel4 "https://raw.githubusercontent.com/acillsadank/install/master/edit-stunnel4.sh"
+wget -O show-ports "https://raw.githubusercontent.com/acillsadank/install/master/show-ports.sh"
+wget -O usernew "https://raw.githubusercontent.com/acillsadank/install/master/usernew.sh"
+wget -O trial "https://raw.githubusercontent.com/acillsadank/install/master/trial.sh"
+wget -O delete "https://raw.githubusercontent.com/acillsadank/install/master/delete.sh"
+wget -O check "https://raw.githubusercontent.com/acillsadank/install/master/user-login.sh"
+wget -O member "https://raw.githubusercontent.com/acillsadank/install/master/user-list.sh"
+wget -O restart "https://raw.githubusercontent.com/acillsadank/install/master/restart.sh"
+wget -O speedtest "https://raw.githubusercontent.com/acillsadank/install/master/speedtest_cli.py"
+wget -O info "https://raw.githubusercontent.com/acillsadank/install/master/info.sh"
+wget -O about "https://raw.githubusercontent.com/acillsadank/install/master/about.sh"
+wget -O /usr/local/bin/auto-reboot "https://raw.githubusercontent.com/blackestsaint/Korn/master/auto-reboot"
+
+chmod +x menu
+chmod +x edit
+chmod +x edit-dropbear
+chmod +x edit-openssh
+chmod +x edit-openvpn
+chmod +x edit-squid3
+chmod +x edit-stunnel4
+chmod +x show-ports
+chmod +x usernew
+chmod +x trial
+chmod +x delete
+chmod +x check
+chmod +x member
+chmod +x restart
+chmod +x speedtest
+chmod +x info
+chmod +x about
+chmod +x /usr/local/bin/auto-reboot
 systemctl restart nginx
 service openvpn restart
 /etc/init.d/cron restart
